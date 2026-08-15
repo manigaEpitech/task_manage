@@ -1,21 +1,17 @@
 import 'dart:io';
 import 'package:test/test.dart';
 
-// Modifiez ces imports selon le nom réel de vos fichiers
 import '../lib/StackItem.dart';
 import '../lib/StackManage.dart';
 
 void main() {
   late StackManage manager;
-  // Utilisation d'un fichier temporaire dédié uniquement aux tests
   final String testFilePath = 'taches_test.json';
 
-  // Cette fonction s'exécute AVANT chaque test individuel
   setUp(() {
     manager = StackManage();
   });
 
-  // Cette fonction s'exécute APRÈS chaque test pour nettoyer le disque
   tearDown(() async {
     final file = File(testFilePath);
     if (await file.exists()) {
@@ -23,7 +19,7 @@ void main() {
     }
   });
 
-  // --- TEST 1 : Vérifier le fichier vide ---
+  // --- TEST 1 : Lire un fichier inexistant (readFromFile) ---
   test(
     '1. Doit retourner une liste vide si le fichier n\'existe pas',
     () async {
@@ -42,10 +38,7 @@ void main() {
     expect(result, isTrue);
     expect(tasks.length, equals(1));
     expect(tasks.first.title, equals('Test 1'));
-    expect(
-      tasks.first.state,
-      equals('To do'),
-    ); // Vérification du texte brut par défaut
+    expect(tasks.first.state, equals('To do'));
   });
 
   // --- TEST 3 : Ajouter plusieurs tâches à la suite ---
