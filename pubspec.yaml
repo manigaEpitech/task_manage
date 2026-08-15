@@ -1,0 +1,8 @@
+name: cli_task_manager
+description: Mon gestionnaire de tâches en ligne de commande
+
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+
+dev_dependencies:
+  test: ^1.24.0
