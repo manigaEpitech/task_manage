@@ -1,140 +1,51 @@
-import '../lib/StackItem.dart';
+import '../lib/Task.dart';
 import '../lib/StackManage.dart';
 
 void main() async {
   final manager = StackManage();
   final String path = 'mes_taches.json';
 
-  print("--- 1. AJOUT DE 5 TÂCHES INITIALES ---");
-
-  final tache1 = UrgentTask(
+  print("--- 1. CRÉATION ET SAUVEGARDE DE TÂCHES ---");
+  final t1 = UrgentTask(
     id: "101",
     title: "Acheter le pain",
-    priority: "Haute",
-    deadLine: "Ce soir",
+    deadLine: "2026-08-20",
   );
-  final tache2 = UrgentTask(
+  final t2 = UrgentTask(
     id: "102",
     title: "Nettoyer le bureau",
-    priority: "Moyenne",
-    deadLine: "Aujourd'hui",
+    deadLine: "2026-08-18",
   );
-  final tache3 = UrgentTask(
+  final t3 = UrgentTask(
     id: "103",
     title: "Réviser les cours Dart",
-    priority: "Haute",
-    deadLine: "Demain",
-  );
-  final tache4 = UrgentTask(
-    id: "104",
-    title: "Payer la facture d'électricité",
-    priority: "Haute",
-    deadLine: "Ce week-end",
-  );
-  final tache5 = UrgentTask(
-    id: "105",
-    title: "Aller à la salle de sport",
-    priority: "Basse",
-    deadLine: "Lundi",
+    deadLine: "2026-08-19",
   );
 
-  // Ajouts successifs à la suite les unes des autres
-  await manager.saveToFile(path, tache1);
-  await manager.saveToFile(path, tache2);
-  await manager.saveToFile(path, tache3);
-  await manager.saveToFile(path, tache4);
-  await manager.saveToFile(path, tache5);
+  await manager.saveToFile(path, t1);
+  await manager.saveToFile(path, t2);
+  await manager.saveToFile(path, t3);
 
-  print("\n--- 2. LECTURE ET AFFICHAGE DES 5 TÂCHES ENREGISTRÉES ---");
-  List<UrgentTask> toutesLesTaches = await manager.readFromFile(path);
-  for (var task in toutesLesTaches) {
-    String affichageStatut = (task.state == 'Done') ? 'Fait' : 'À faire';
+  print("\n--- 2. AFFICHAGE TRIÉ PAR DATE (Exigence Sujet) ---");
+  List<UrgentTask> tachesTriees = await manager.getAllSorted(path, "date");
+  for (var task in tachesTriees) {
+    String statut = (task.state == 'Done') ? 'Fait' : 'À faire';
     print(
-      "[ID: ${task.id}] ${task.title} | Priorité: ${task.priority} | Statut: $affichageStatut",
+      "[ID: ${task.id}] ${task.title} | Date: ${task.deadLine} | Statut: $statut",
     );
   }
 
-  print("\n--- 3. MODIFICATION DE LA TÂCHE 101 ET 103 ---");
-  final tache1Modifiee = UrgentTask(
-    id: "101",
-    title: "Acheter le pain",
-    priority: "Haute",
-    deadLine: "Ce soir",
+  print("\n--- 3. MARQUER UNE TÂCHE COMME FAITE (Exigence Sujet) ---");
+  final t2Modifiee = UrgentTask(
+    id: "102",
+    title: "Nettoyer le bureau",
+    deadLine: "2026-08-18",
     state: 'Done',
   );
+  await manager.updateTask(path, t2Modifiee);
+  print("Tâche 102 marquée comme faite !");
 
-  final tache3Modifiee = UrgentTask(
-    id: "103",
-    title: "Réviser les cours Dart",
-    priority: "Maximale", // Changement de priorité
-    deadLine: "Ce week-end",
-    state: 'To do',
-  );
-
-  await manager.updatedTask(path, tache1Modifiee);
-  await manager.updatedTask(path, tache3Modifiee);
-
-  print("\n--- 4. SUPPRESSION DE LA TÂCHE 105 ---");
-  await manager.deletedTask(path, "105");
-
-  print("\n--- 5. VÉRIFICATION FINALE DU FICHIER JSON ---");
-  List<UrgentTask> listeFinale = await manager.readFromFile(path);
-  for (var task in listeFinale) {
-    String affichageStatut = (task.state == 'Done') ? 'Fait' : 'À faire';
-    print(
-      "[ID: ${task.id}] ${task.title} | Priorité: ${task.priority} | Statut: $affichageStatut",
-    );
-  }
-
-  print("\n--- 6. TEST DE RECHERCHE / FILTRAGE PAR PRIORITÉ SEULE ---");
-  print("-> Recherche des tâches avec la priorité 'Haute' :");
-  List<UrgentTask> resultatPriorite = await manager.filterByPriorityOrDeadline(
-    path,
-    priority: "Haute",
-  );
-
-  if (resultatPriorite.isEmpty) {
-    print("Aucune tâche trouvée avec cette priorité.");
-  } else {
-    for (var task in resultatPriorite) {
-      print("   [ID: ${task.id}] ${task.title} (Priorité: ${task.priority})");
-    }
-  }
-
-  print("\n--- 7. TEST DE RECHERCHE / FILTRAGE PAR DEADLINE SEULE ---");
-  print(
-    "-> Recherche des tâches prévues pour 'Ce week-end' (insensible à la casse) :",
-  );
-  List<UrgentTask> resultatDeadline = await manager.filterByPriorityOrDeadline(
-    path,
-    deadLine: "ce week-end",
-  );
-
-  if (resultatDeadline.isEmpty) {
-    print("Aucune tâche trouvée pour cette date.");
-  } else {
-    for (var task in resultatDeadline) {
-      print("   [ID: ${task.id}] ${task.title} (Deadline: ${task.deadLine})");
-    }
-  }
-
-  print("\n--- 8. TEST DE RECHERCHE COMBINÉE (LOGIQUE DU 'OU') ---");
-  print(
-    "-> Recherche des tâches avec priorité 'Moyenne' OU prévues 'Ce soir' :",
-  );
-  List<UrgentTask> resultatCombines = await manager.filterByPriorityOrDeadline(
-    path,
-    priority: "Moyenne",
-    deadLine: "Ce soir",
-  );
-
-  if (resultatCombines.isEmpty) {
-    print("Aucune tâche ne correspond à ces critères.");
-  } else {
-    for (var task in resultatCombines) {
-      print(
-        "   [ID: ${task.id}] ${task.title} | Priorité: ${task.priority} | Deadline: ${task.deadLine ?? 'Aucune'}",
-      );
-    }
-  }
+  print("\n--- 4. SUPPRESSION D'UNE TÂCHE (Exigence Sujet) ---");
+  await manager.deleteTask(path, "103");
+  print("Tâche 103 supprimée !");
 }

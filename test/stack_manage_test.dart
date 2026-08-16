@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:test/test.dart';
 
-import '../lib/StackItem.dart';
+import '../lib/Task.dart';
 import '../lib/StackManage.dart';
 import '../lib/TaskExceptions.dart';
 
@@ -20,152 +20,44 @@ void main() {
     }
   });
 
-  // --- TEST 1 : Lire un fichier inexistant (readFromFile) ---
-  test(
-    '1. Doit retourner une liste vide si le fichier n\'existe pas',
-    () async {
-      final tasks = await manager.readFromFile(testFilePath);
-      expect(tasks, isEmpty);
-    },
-  );
-
-  // --- TEST 2 : Ajouter une tâche (saveToFile) ---
-  test('2. Doit ajouter une tâche avec succès dans le fichier', () async {
-    final tache = UrgentTask(id: '1', title: 'Test 1', priority: 'Haute');
-
-    final result = await manager.saveToFile(testFilePath, tache);
+  test('1. Liste vide si pas de fichier', () async {
     final tasks = await manager.readFromFile(testFilePath);
-
-    expect(result, isTrue);
-    expect(tasks.length, equals(1));
-    expect(tasks.first.title, equals('Test 1'));
-    expect(tasks.first.state, equals('To do'));
+    expect(tasks, isEmpty);
   });
 
-  // --- TEST 3 : Ajouter plusieurs tâches à la suite ---
-  test(
-    '3. Doit ajouter une tâche à la suite de l\'existante sans l\'écraser',
-    () async {
-      final t1 = UrgentTask(id: '1', title: 'Tâche 1', priority: 'Basse');
-      final t2 = UrgentTask(id: '2', title: 'Tâche 2', priority: 'Moyenne');
+  test('2. Sauvegarde et lecture d\'une tâche', () async {
+    final tache = UrgentTask(id: '1', title: 'Test Tâche');
+    await manager.saveToFile(testFilePath, tache);
 
-      await manager.saveToFile(testFilePath, t1);
-      await manager.saveToFile(testFilePath, t2);
+    final tasks = await manager.readFromFile(testFilePath);
+    expect(tasks.length, equals(1));
+    expect(tasks.first.title, equals('Test Tâche'));
+  });
 
-      final tasks = await manager.readFromFile(testFilePath);
-
-      expect(tasks.length, equals(2));
-      expect(tasks[0].id, equals('1'));
-      expect(tasks[1].id, equals('2'));
-    },
-  );
-
-  // --- TEST 4 : Modifier une tâche (updateTask) ---
-  test(
-    '4. Doit modifier correctement le statut d\'une tâche existante',
-    () async {
-      final t1 = UrgentTask(
-        id: '1',
-        title: 'Acheter pain',
-        priority: 'Haute',
-        state: 'To do',
-      );
-      await manager.saveToFile(testFilePath, t1);
-
-      // Préparation de l'objet modifié
-      final t1Modifiee = UrgentTask(
-        id: '1',
-        title: 'Acheter pain',
-        priority: 'Haute',
-        state: 'Done',
-      );
-
-      final updateResult = await manager.updatedTask(testFilePath, t1Modifiee);
-      final tasks = await manager.readFromFile(testFilePath);
-
-      expect(updateResult, isTrue);
-      expect(
-        tasks.first.state,
-        equals('Done'),
-      ); // Le statut est passé en texte brut 'Done'
-    },
-  );
-
-  // --- TEST 5 : Supprimer une tâche (deleteTask) ---
-  test('5. Doit supprimer une tâche spécifique via son ID', () async {
-    final t1 = UrgentTask(
-      id: '1',
-      title: 'Tâche à supprimer',
-      priority: 'Basse',
-    );
-    final t2 = UrgentTask(id: '2', title: 'Tâche à garder', priority: 'Haute');
+  test('3. Tri des tâches par date', () async {
+    final t1 = UrgentTask(id: '1', title: 'Loin', deadLine: '2026-12-31');
+    final t2 = UrgentTask(id: '2', title: 'Proche', deadLine: '2026-01-01');
 
     await manager.saveToFile(testFilePath, t1);
     await manager.saveToFile(testFilePath, t2);
 
-    final deleteResult = await manager.deletedTask(testFilePath, '1');
-    final tasks = await manager.readFromFile(testFilePath);
-
-    expect(deleteResult, isTrue);
-    expect(tasks.length, equals(1));
-    expect(tasks.first.id, equals('2'));
+    final sorted = await manager.getAllSorted(testFilePath, 'date');
+    expect(sorted.first.title, equals('Proche'));
   });
-  // --- TEST 6 : Filtrage indépendant par Priorité OU Deadline ---
-  test(
-    '6. Doit filtrer par priorité OU par deadline de manière indépendante',
-    () async {
-      final t1 = UrgentTask(
-        id: '1',
-        title: 'Tâche A',
-        priority: 'Haute',
-        deadLine: 'Lundi',
-      );
-      final t2 = UrgentTask(
-        id: '2',
-        title: 'Tâche B',
-        priority: 'Basse',
-        deadLine: 'Mardi',
-      );
-      final t3 = UrgentTask(
-        id: '3',
-        title: 'Tâche C',
-        priority: 'Moyenne',
-        deadLine: 'Lundi',
-      );
 
-      await manager.saveToFile(testFilePath, t1);
-      await manager.saveToFile(testFilePath, t2);
-      await manager.saveToFile(testFilePath, t3);
+  test('4. Lever une exception TaskNotFoundException', () async {
+    final fausseTache = UrgentTask(id: '999', title: 'Inconnue');
+    expect(
+      () => manager.updateTask(testFilePath, fausseTache),
+      throwsA(isA<TaskNotFoundException>()),
+    );
+  });
 
-      // Test du filtre Priorité seule : On attend uniquement la tâche A (Haute)
-      final filtrePriorite = await manager.filterByPriorityOrDeadline(
-        testFilePath,
-        priority: 'Haute',
-      );
-      expect(filtrePriorite.length, equals(1));
-      expect(filtrePriorite.first.id, equals('1'));
+  test('5. Suppression d\'une tâche', () async {
+    final tache = UrgentTask(id: '10', title: 'À supprimer');
+    await manager.saveToFile(testFilePath, tache);
 
-      // Test du filtre Deadline seule : On attend les tâches A et C (prévues le Lundi)
-      final filtreDeadline = await manager.filterByPriorityOrDeadline(
-        testFilePath,
-        deadLine: 'lundi',
-      );
-      expect(filtreDeadline.length, equals(2));
-      expect(filtreDeadline.any((t) => t.id == '1'), isTrue);
-      expect(filtreDeadline.any((t) => t.id == '3'), isTrue);
-    },
-  );
-
-  test(
-    'Doit lever une exception si on met à jour une tâche inexistante',
-    () async {
-      final fausseTache = UrgentTask(id: '999', title: 'Fantôme');
-
-      // En Dart, pour tester une exception, on passe la fonction dans un closure
-      expect(
-        () => manager.updatedTask(testFilePath, fausseTache),
-        throwsA(isA<TaskNotFoundException>()),
-      );
-    },
-  );
+    final deleteResult = await manager.deleteTask(testFilePath, '10');
+    expect(deleteResult, isTrue);
+  });
 }

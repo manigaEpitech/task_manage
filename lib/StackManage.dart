@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'StackItem.dart';
+import 'Task.dart';
 import 'TaskStorage.dart';
 import 'TaskExceptions.dart';
 
@@ -36,12 +36,11 @@ class StackManage implements TaskStorage<UrgentTask> {
   }
 
   @override
-  Future<bool> updatedTask(String filePath, UrgentTask updatedItem) async {
+  Future<bool> updateTask(String filePath, UrgentTask updatedItem) async {
     List<UrgentTask> currentTasks = await readFromFile(filePath);
     int index = currentTasks.indexWhere((task) => task.id == updatedItem.id);
 
     if (index == -1) {
-      // LEVÉE D'EXCEPTION REQUISE PAR LE SUJET
       throw TaskNotFoundException(
         "La tâche avec l'ID ${updatedItem.id} n'existe pas.",
       );
@@ -53,7 +52,7 @@ class StackManage implements TaskStorage<UrgentTask> {
   }
 
   @override
-  Future<bool> deletedTask(String filePath, String idItem) async {
+  Future<bool> deleteTask(String filePath, String idItem) async {
     List<UrgentTask> currentTasks = await readFromFile(filePath);
     int initLength = currentTasks.length;
 
@@ -74,13 +73,11 @@ class StackManage implements TaskStorage<UrgentTask> {
     List<UrgentTask> tasks = await readFromFile(filePath);
 
     if (sortBy.toLowerCase() == 'priority') {
-      // Tri par priorité (high -> medium -> low)
       Map<String, int> weight = {'high': 3, 'medium': 2, 'low': 1};
       tasks.sort(
         (a, b) => (weight[b.priority] ?? 0).compareTo(weight[a.priority] ?? 0),
       );
     } else if (sortBy.toLowerCase() == 'date') {
-      // Tri par deadline (met les valeurs nulles à la fin)
       tasks.sort((a, b) {
         if (a.deadLine == null) return 1;
         if (b.deadLine == null) return -1;
@@ -91,7 +88,7 @@ class StackManage implements TaskStorage<UrgentTask> {
   }
 
   @override
-  Future<List<UrgentTask>> filterByPriorityOrDeadline(
+  Future<List<UrgentTask>> filterBy(
     String filePath, {
     String? priority,
     String? deadLine,
