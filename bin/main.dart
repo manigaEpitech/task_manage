@@ -45,7 +45,6 @@ void main() async {
   print("\n--- 2. LECTURE ET AFFICHAGE DES 5 TÂCHES ENREGISTRÉES ---");
   List<StackItem> toutesLesTaches = await manager.readFromFile(path);
   for (var task in toutesLesTaches) {
-    // Utilisation d'une condition textuelle puisque 'state' est un String ('To do' ou 'Done')
     String affichageStatut = (task.state == 'Done') ? 'Fait' : 'À faire';
     print(
       "[ID: ${task.id}] ${task.title} | Priorité: ${task.priority} | Statut: $affichageStatut",
@@ -53,7 +52,6 @@ void main() async {
   }
 
   print("\n--- 3. MODIFICATION DE LA TÂCHE 101 ET 103 ---");
-  // Passage de la tâche 101 à l'état 'Done'
   final tache1Modifiee = StackItem(
     id: "101",
     title: "Acheter le pain",
@@ -62,7 +60,6 @@ void main() async {
     state: 'Done',
   );
 
-  // Changement de priorité pour la tâche 103
   final tache3Modifiee = StackItem(
     id: "103",
     title: "Réviser les cours Dart",
@@ -71,12 +68,10 @@ void main() async {
     state: 'To do',
   );
 
-  // Appel de la méthode corrigée updatedTask (sans le 'd')
   await manager.updatedTask(path, tache1Modifiee);
   await manager.updatedTask(path, tache3Modifiee);
 
   print("\n--- 4. SUPPRESSION DE LA TÂCHE 105 ---");
-  // Test de la suppression de la dernière tâche de la liste
   await manager.deletedTask(path, "105");
 
   print("\n--- 5. VÉRIFICATION FINALE DU FICHIER JSON ---");
@@ -86,5 +81,57 @@ void main() async {
     print(
       "[ID: ${task.id}] ${task.title} | Priorité: ${task.priority} | Statut: $affichageStatut",
     );
+  }
+
+  print("\n--- 6. TEST DE RECHERCHE / FILTRAGE PAR PRIORITÉ SEULE ---");
+  print("-> Recherche des tâches avec la priorité 'Haute' :");
+  List<StackItem> resultatPriorite = await manager.filterByPriorityOrDeadline(
+    path,
+    priority: "Haute",
+  );
+
+  if (resultatPriorite.isEmpty) {
+    print("Aucune tâche trouvée avec cette priorité.");
+  } else {
+    for (var task in resultatPriorite) {
+      print("   [ID: ${task.id}] ${task.title} (Priorité: ${task.priority})");
+    }
+  }
+
+  print("\n--- 7. TEST DE RECHERCHE / FILTRAGE PAR DEADLINE SEULE ---");
+  print(
+    "-> Recherche des tâches prévues pour 'Ce week-end' (insensible à la casse) :",
+  );
+  List<StackItem> resultatDeadline = await manager.filterByPriorityOrDeadline(
+    path,
+    deadLine: "ce week-end",
+  );
+
+  if (resultatDeadline.isEmpty) {
+    print("Aucune tâche trouvée pour cette date.");
+  } else {
+    for (var task in resultatDeadline) {
+      print("   [ID: ${task.id}] ${task.title} (Deadline: ${task.deadLine})");
+    }
+  }
+
+  print("\n--- 8. TEST DE RECHERCHE COMBINÉE (LOGIQUE DU 'OU') ---");
+  print(
+    "-> Recherche des tâches avec priorité 'Moyenne' OU prévues 'Ce soir' :",
+  );
+  List<StackItem> resultatCombines = await manager.filterByPriorityOrDeadline(
+    path,
+    priority: "Moyenne",
+    deadLine: "Ce soir",
+  );
+
+  if (resultatCombines.isEmpty) {
+    print("Aucune tâche ne correspond à ces critères.");
+  } else {
+    for (var task in resultatCombines) {
+      print(
+        "   [ID: ${task.id}] ${task.title} | Priorité: ${task.priority} | Deadline: ${task.deadLine ?? 'Aucune'}",
+      );
+    }
   }
 }

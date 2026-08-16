@@ -3,4 +3,9 @@ abstract class TaskStorage<T> {
   Future<List<T?>> readFromFile(String filePath);
   Future<bool> updatedTask(String filePath, T updatedItem);
   Future<bool> deletedTask(String filePath, String idItem);
+  Future<List<T>> filterByPriorityOrDeadline(
+    String filePath, {
+    String? priority,
+    String? deadLine,
+  });
 }

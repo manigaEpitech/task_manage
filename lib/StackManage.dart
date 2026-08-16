@@ -95,4 +95,34 @@ class StackManage implements TaskStorage<StackItem> {
       return false;
     }
   }
+
+  @override
+  Future<List<StackItem>> filterByPriorityOrDeadline(
+    String filePath, {
+    String? priority,
+    String? deadLine,
+  }) async {
+    try {
+      if (priority == null && deadLine == null) return [];
+
+      List<StackItem> currentTasks = await readFromFile(filePath);
+
+      final filteredResults = currentTasks.where((task) {
+        final matchPriority =
+            priority != null &&
+            task.priority.toLowerCase() == priority.toLowerCase();
+        final matchDeadline =
+            deadLine != null &&
+            task.deadLine != null &&
+            task.deadLine!.toLowerCase().contains(deadLine.toLowerCase());
+
+        return matchPriority || matchDeadline;
+      }).toList();
+
+      return filteredResults;
+    } catch (e) {
+      print('Error during filtering! $e');
+      return [];
+    }
+  }
 }

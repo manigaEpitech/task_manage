@@ -109,4 +109,49 @@ void main() {
     expect(tasks.length, equals(1));
     expect(tasks.first.id, equals('2'));
   });
+  // --- TEST 6 : Filtrage indépendant par Priorité OU Deadline ---
+  test(
+    '6. Doit filtrer par priorité OU par deadline de manière indépendante',
+    () async {
+      final t1 = StackItem(
+        id: '1',
+        title: 'Tâche A',
+        priority: 'Haute',
+        deadLine: 'Lundi',
+      );
+      final t2 = StackItem(
+        id: '2',
+        title: 'Tâche B',
+        priority: 'Basse',
+        deadLine: 'Mardi',
+      );
+      final t3 = StackItem(
+        id: '3',
+        title: 'Tâche C',
+        priority: 'Moyenne',
+        deadLine: 'Lundi',
+      );
+
+      await manager.saveToFile(testFilePath, t1);
+      await manager.saveToFile(testFilePath, t2);
+      await manager.saveToFile(testFilePath, t3);
+
+      // Test du filtre Priorité seule : On attend uniquement la tâche A (Haute)
+      final filtrePriorite = await manager.filterByPriorityOrDeadline(
+        testFilePath,
+        priority: 'Haute',
+      );
+      expect(filtrePriorite.length, equals(1));
+      expect(filtrePriorite.first.id, equals('1'));
+
+      // Test du filtre Deadline seule : On attend les tâches A et C (prévues le Lundi)
+      final filtreDeadline = await manager.filterByPriorityOrDeadline(
+        testFilePath,
+        deadLine: 'lundi',
+      );
+      expect(filtreDeadline.length, equals(2));
+      expect(filtreDeadline.any((t) => t.id == '1'), isTrue);
+      expect(filtreDeadline.any((t) => t.id == '3'), isTrue);
+    },
+  );
 }
