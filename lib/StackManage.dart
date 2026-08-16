@@ -3,126 +3,111 @@ import 'dart:io';
 
 import 'StackItem.dart';
 import 'TaskStorage.dart';
+import 'TaskExceptions.dart';
 
-class StackManage implements TaskStorage<StackItem> {
-  Future<void> _createJsonFile(File file, List<StackItem> tasks) async {
-    final jsonList = tasks.map((task) => task.toJson()).toList();
-    final jsonFile = jsonEncode(jsonList);
-    await file.writeAsString(jsonFile);
-  }
-
-  @override
-  Future<bool> saveToFile(String filePath, StackItem items) async {
+class StackManage implements TaskStorage<UrgentTask> {
+  Future<void> _writeTrueJson(File file, List<UrgentTask> tasks) async {
     try {
-      final file = File(filePath);
-      List<StackItem> currentTasks = [];
-
-      if (await file.exists()) currentTasks = await readFromFile(filePath);
-
-      currentTasks.add(items);
-      await _createJsonFile(file, currentTasks);
-
-      print("Your task is created !");
-      return true;
+      final jsonList = tasks.map((t) => t.toJson()).toList();
+      await file.writeAsString(jsonEncode(jsonList));
     } catch (e) {
-      print('Error ! $e');
-      return false;
+      throw StorageException("Impossible d'écrire dans le fichier JSON.");
     }
   }
 
   @override
-  Future<List<StackItem>> readFromFile(String filePath) async {
-    try {
-      final file = File(filePath);
-
-      if (!await file.exists()) return [];
-
-      final taskRestore = await file.readAsString();
-
-      if (taskRestore.trim().isEmpty) return [];
-
-      final List<dynamic> taskDecode = jsonDecode(taskRestore);
-
-      return taskDecode.map((item) => StackItem.fromJson(item)).toList();
-    } catch (e) {
-      print('Error! $e');
-      return [];
-    }
+  Future<bool> saveToFile(String filePath, UrgentTask item) async {
+    final file = File(filePath);
+    List<UrgentTask> currentTasks = await readFromFile(filePath);
+    currentTasks.add(item);
+    await _writeTrueJson(file, currentTasks);
+    return true;
   }
 
   @override
-  Future<bool> updatedTask(String filePath, StackItem updatedItem) async {
-    try {
-      List<StackItem> currentTasks = await readFromFile(filePath);
+  Future<List<UrgentTask>> readFromFile(String filePath) async {
+    final file = File(filePath);
+    if (!await file.exists()) return [];
+    final content = await file.readAsString();
+    if (content.trim().isEmpty) return [];
 
-      int index = currentTasks.indexWhere((task) => task.id == updatedItem.id);
+    final List<dynamic> decoded = jsonDecode(content);
+    return decoded.map((item) => UrgentTask.fromJson(item)).toList();
+  }
 
-      if (index != -1) {
-        currentTasks[index] = updatedItem;
+  @override
+  Future<bool> updatedTask(String filePath, UrgentTask updatedItem) async {
+    List<UrgentTask> currentTasks = await readFromFile(filePath);
+    int index = currentTasks.indexWhere((task) => task.id == updatedItem.id);
 
-        final file = File(filePath);
-        await _createJsonFile(file, currentTasks);
-
-        return true;
-      }
-
-      print('there are not  Task with this ID!');
-      return false;
-    } catch (e) {
-      print('ERROR ! $e');
-      return false;
+    if (index == -1) {
+      // LEVÉE D'EXCEPTION REQUISE PAR LE SUJET
+      throw TaskNotFoundException(
+        "La tâche avec l'ID ${updatedItem.id} n'existe pas.",
+      );
     }
+
+    currentTasks[index] = updatedItem;
+    await _writeTrueJson(File(filePath), currentTasks);
+    return true;
   }
 
   @override
   Future<bool> deletedTask(String filePath, String idItem) async {
-    try {
-      List<StackItem> currentTasks = await readFromFile(filePath);
+    List<UrgentTask> currentTasks = await readFromFile(filePath);
+    int initLength = currentTasks.length;
 
-      int initLength = currentTasks.length;
-      currentTasks.removeWhere((task) => task.id == idItem);
+    currentTasks.removeWhere((task) => task.id == idItem);
 
-      if (currentTasks.length < initLength) {
-        await _createJsonFile(File(filePath), currentTasks);
-        print('Task deleted successfully !');
-        return true;
-      }
-
-      print('there are not task to delete with this ID!');
-      return false;
-    } catch (e) {
-      print('ERROR! $e');
-      return false;
+    if (currentTasks.length == initLength) {
+      throw TaskNotFoundException(
+        "Aucune tâche à supprimer avec l'ID $idItem.",
+      );
     }
+
+    await _writeTrueJson(File(filePath), currentTasks);
+    return true;
   }
 
   @override
-  Future<List<StackItem>> filterByPriorityOrDeadline(
+  Future<List<UrgentTask>> getAllSorted(String filePath, String sortBy) async {
+    List<UrgentTask> tasks = await readFromFile(filePath);
+
+    if (sortBy.toLowerCase() == 'priority') {
+      // Tri par priorité (high -> medium -> low)
+      Map<String, int> weight = {'high': 3, 'medium': 2, 'low': 1};
+      tasks.sort(
+        (a, b) => (weight[b.priority] ?? 0).compareTo(weight[a.priority] ?? 0),
+      );
+    } else if (sortBy.toLowerCase() == 'date') {
+      // Tri par deadline (met les valeurs nulles à la fin)
+      tasks.sort((a, b) {
+        if (a.deadLine == null) return 1;
+        if (b.deadLine == null) return -1;
+        return a.deadLine!.compareTo(b.deadLine!);
+      });
+    }
+    return tasks;
+  }
+
+  @override
+  Future<List<UrgentTask>> filterByPriorityOrDeadline(
     String filePath, {
     String? priority,
     String? deadLine,
   }) async {
-    try {
-      if (priority == null && deadLine == null) return [];
+    if (priority == null && deadLine == null) return [];
+    List<UrgentTask> currentTasks = await readFromFile(filePath);
 
-      List<StackItem> currentTasks = await readFromFile(filePath);
-
-      final filteredResults = currentTasks.where((task) {
-        final matchPriority =
-            priority != null &&
-            task.priority.toLowerCase() == priority.toLowerCase();
-        final matchDeadline =
-            deadLine != null &&
-            task.deadLine != null &&
-            task.deadLine!.toLowerCase().contains(deadLine.toLowerCase());
-
-        return matchPriority || matchDeadline;
-      }).toList();
-
-      return filteredResults;
-    } catch (e) {
-      print('Error during filtering! $e');
-      return [];
-    }
+    return currentTasks.where((task) {
+      final matchPriority =
+          priority != null &&
+          task.priority.toLowerCase() == priority.toLowerCase();
+      final matchDeadline =
+          deadLine != null &&
+          task.deadLine != null &&
+          task.deadLine!.toLowerCase().contains(deadLine.toLowerCase());
+      return matchPriority || matchDeadline;
+    }).toList();
   }
 }

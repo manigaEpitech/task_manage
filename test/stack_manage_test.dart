@@ -3,6 +3,7 @@ import 'package:test/test.dart';
 
 import '../lib/StackItem.dart';
 import '../lib/StackManage.dart';
+import '../lib/TaskExceptions.dart';
 
 void main() {
   late StackManage manager;
@@ -30,7 +31,7 @@ void main() {
 
   // --- TEST 2 : Ajouter une tâche (saveToFile) ---
   test('2. Doit ajouter une tâche avec succès dans le fichier', () async {
-    final tache = StackItem(id: '1', title: 'Test 1', priority: 'Haute');
+    final tache = UrgentTask(id: '1', title: 'Test 1', priority: 'Haute');
 
     final result = await manager.saveToFile(testFilePath, tache);
     final tasks = await manager.readFromFile(testFilePath);
@@ -45,8 +46,8 @@ void main() {
   test(
     '3. Doit ajouter une tâche à la suite de l\'existante sans l\'écraser',
     () async {
-      final t1 = StackItem(id: '1', title: 'Tâche 1', priority: 'Basse');
-      final t2 = StackItem(id: '2', title: 'Tâche 2', priority: 'Moyenne');
+      final t1 = UrgentTask(id: '1', title: 'Tâche 1', priority: 'Basse');
+      final t2 = UrgentTask(id: '2', title: 'Tâche 2', priority: 'Moyenne');
 
       await manager.saveToFile(testFilePath, t1);
       await manager.saveToFile(testFilePath, t2);
@@ -63,7 +64,7 @@ void main() {
   test(
     '4. Doit modifier correctement le statut d\'une tâche existante',
     () async {
-      final t1 = StackItem(
+      final t1 = UrgentTask(
         id: '1',
         title: 'Acheter pain',
         priority: 'Haute',
@@ -72,7 +73,7 @@ void main() {
       await manager.saveToFile(testFilePath, t1);
 
       // Préparation de l'objet modifié
-      final t1Modifiee = StackItem(
+      final t1Modifiee = UrgentTask(
         id: '1',
         title: 'Acheter pain',
         priority: 'Haute',
@@ -92,12 +93,12 @@ void main() {
 
   // --- TEST 5 : Supprimer une tâche (deleteTask) ---
   test('5. Doit supprimer une tâche spécifique via son ID', () async {
-    final t1 = StackItem(
+    final t1 = UrgentTask(
       id: '1',
       title: 'Tâche à supprimer',
       priority: 'Basse',
     );
-    final t2 = StackItem(id: '2', title: 'Tâche à garder', priority: 'Haute');
+    final t2 = UrgentTask(id: '2', title: 'Tâche à garder', priority: 'Haute');
 
     await manager.saveToFile(testFilePath, t1);
     await manager.saveToFile(testFilePath, t2);
@@ -113,19 +114,19 @@ void main() {
   test(
     '6. Doit filtrer par priorité OU par deadline de manière indépendante',
     () async {
-      final t1 = StackItem(
+      final t1 = UrgentTask(
         id: '1',
         title: 'Tâche A',
         priority: 'Haute',
         deadLine: 'Lundi',
       );
-      final t2 = StackItem(
+      final t2 = UrgentTask(
         id: '2',
         title: 'Tâche B',
         priority: 'Basse',
         deadLine: 'Mardi',
       );
-      final t3 = StackItem(
+      final t3 = UrgentTask(
         id: '3',
         title: 'Tâche C',
         priority: 'Moyenne',
@@ -152,6 +153,19 @@ void main() {
       expect(filtreDeadline.length, equals(2));
       expect(filtreDeadline.any((t) => t.id == '1'), isTrue);
       expect(filtreDeadline.any((t) => t.id == '3'), isTrue);
+    },
+  );
+
+  test(
+    'Doit lever une exception si on met à jour une tâche inexistante',
+    () async {
+      final fausseTache = UrgentTask(id: '999', title: 'Fantôme');
+
+      // En Dart, pour tester une exception, on passe la fonction dans un closure
+      expect(
+        () => manager.updatedTask(testFilePath, fausseTache),
+        throwsA(isA<TaskNotFoundException>()),
+      );
     },
   );
 }

@@ -8,4 +8,5 @@ abstract class TaskStorage<T> {
     String? priority,
     String? deadLine,
   });
+  Future<List<T>> getAllSorted(String filePath, String sortBy);
 }

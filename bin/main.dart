@@ -7,32 +7,35 @@ void main() async {
 
   print("--- 1. AJOUT DE 5 TÂCHES INITIALES ---");
 
-  final tache1 = StackItem(
+  final tache1 = UrgentTask(
     id: "101",
     title: "Acheter le pain",
     priority: "Haute",
     deadLine: "Ce soir",
   );
-  final tache2 = StackItem(
+  final tache2 = UrgentTask(
     id: "102",
     title: "Nettoyer le bureau",
     priority: "Moyenne",
+    deadLine: "Aujourd'hui",
   );
-  final tache3 = StackItem(
+  final tache3 = UrgentTask(
     id: "103",
     title: "Réviser les cours Dart",
     priority: "Haute",
     deadLine: "Demain",
   );
-  final tache4 = StackItem(
+  final tache4 = UrgentTask(
     id: "104",
     title: "Payer la facture d'électricité",
     priority: "Haute",
+    deadLine: "Ce week-end",
   );
-  final tache5 = StackItem(
+  final tache5 = UrgentTask(
     id: "105",
     title: "Aller à la salle de sport",
     priority: "Basse",
+    deadLine: "Lundi",
   );
 
   // Ajouts successifs à la suite les unes des autres
@@ -43,7 +46,7 @@ void main() async {
   await manager.saveToFile(path, tache5);
 
   print("\n--- 2. LECTURE ET AFFICHAGE DES 5 TÂCHES ENREGISTRÉES ---");
-  List<StackItem> toutesLesTaches = await manager.readFromFile(path);
+  List<UrgentTask> toutesLesTaches = await manager.readFromFile(path);
   for (var task in toutesLesTaches) {
     String affichageStatut = (task.state == 'Done') ? 'Fait' : 'À faire';
     print(
@@ -52,7 +55,7 @@ void main() async {
   }
 
   print("\n--- 3. MODIFICATION DE LA TÂCHE 101 ET 103 ---");
-  final tache1Modifiee = StackItem(
+  final tache1Modifiee = UrgentTask(
     id: "101",
     title: "Acheter le pain",
     priority: "Haute",
@@ -60,7 +63,7 @@ void main() async {
     state: 'Done',
   );
 
-  final tache3Modifiee = StackItem(
+  final tache3Modifiee = UrgentTask(
     id: "103",
     title: "Réviser les cours Dart",
     priority: "Maximale", // Changement de priorité
@@ -75,7 +78,7 @@ void main() async {
   await manager.deletedTask(path, "105");
 
   print("\n--- 5. VÉRIFICATION FINALE DU FICHIER JSON ---");
-  List<StackItem> listeFinale = await manager.readFromFile(path);
+  List<UrgentTask> listeFinale = await manager.readFromFile(path);
   for (var task in listeFinale) {
     String affichageStatut = (task.state == 'Done') ? 'Fait' : 'À faire';
     print(
@@ -85,7 +88,7 @@ void main() async {
 
   print("\n--- 6. TEST DE RECHERCHE / FILTRAGE PAR PRIORITÉ SEULE ---");
   print("-> Recherche des tâches avec la priorité 'Haute' :");
-  List<StackItem> resultatPriorite = await manager.filterByPriorityOrDeadline(
+  List<UrgentTask> resultatPriorite = await manager.filterByPriorityOrDeadline(
     path,
     priority: "Haute",
   );
@@ -102,7 +105,7 @@ void main() async {
   print(
     "-> Recherche des tâches prévues pour 'Ce week-end' (insensible à la casse) :",
   );
-  List<StackItem> resultatDeadline = await manager.filterByPriorityOrDeadline(
+  List<UrgentTask> resultatDeadline = await manager.filterByPriorityOrDeadline(
     path,
     deadLine: "ce week-end",
   );
@@ -119,7 +122,7 @@ void main() async {
   print(
     "-> Recherche des tâches avec priorité 'Moyenne' OU prévues 'Ce soir' :",
   );
-  List<StackItem> resultatCombines = await manager.filterByPriorityOrDeadline(
+  List<UrgentTask> resultatCombines = await manager.filterByPriorityOrDeadline(
     path,
     priority: "Moyenne",
     deadLine: "Ce soir",
