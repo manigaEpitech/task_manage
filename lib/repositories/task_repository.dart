@@ -1,0 +1,42 @@
+import 'repository.dart';
+import '../models/urgent_task.dart';
+import '../storage/json_storage.dart';
+import '../exceptions/task_exception.dart';
+
+class TaskRepository implements Repository<UrgentTask> {
+  final JsonStorage storage;
+
+  TaskRepository(this.storage);
+
+  @override
+  Future<List<UrgentTask>> getAll() async {
+    final rawData = await storage.read();
+    return rawData.map((json) => UrgentTask.fromJson(json)).toList();
+  }
+
+  @override
+  Future<void> add(UrgentTask item) async {
+    final list = await getAll();
+    list.add(item);
+    await storage.write(list.map((t) => t.toJson()).toList());
+  }
+
+  @override
+  Future<void> update(UrgentTask item) async {
+    final list = await getAll();
+    final index = list.indexWhere((t) => t.id == item.id);
+    if (index == -1) throw TaskNotFoundException("Tâche introuvable.");
+    list[index] = item;
+    await storage.write(list.map((t) => t.toJson()).toList());
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    final list = await getAll();
+    final initLength = list.length;
+    list.removeWhere((t) => t.id == id);
+    if (list.length == initLength)
+      throw TaskNotFoundException("Tâche introuvable.");
+    await storage.write(list.map((t) => t.toJson()).toList());
+  }
+}

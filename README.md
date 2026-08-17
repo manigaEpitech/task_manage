@@ -1,14 +1,15 @@
-# 📝 Gestionnaire de Tâches Dart (Stack Manager)
+# 📝 Gestionnaire de Tâches Dart (CLI Task Manager)
 
-Une application console en Dart permettant de gérer une liste de tâches sauvegardée de façon persistante dans un fichier au format JSON. Le projet est structuré selon les principes de la programmation orientée objet (POO) avec une architecture basée sur des interfaces et propose des tests unitaires complets.
+Une application console en Dart pur conçue selon une architecture découplée en couches (Clean Architecture / Repository Pattern). Elle permet de gérer un flux complet de tâches de façon persistante dans un stockage JSON local, intègre des exceptions personnalisées ainsi qu'une suite de tests automatisés.
 
 ---
 
 ## 🚀 Fonctionnalités
-* **Création** : Ajout de tâches à la suite dans un fichier JSON sans écraser l'existant.
-* **Lecture** : Récupération et affichage de la liste complète des tâches.
-* **Mise à jour** : Modification des informations ou du statut d'une tâche (`To do` / `Done`).
-* **Suppression** : Retrait d'une tâche spécifique à partir de son identifiant unique.
+* **Création** : Ajout de tâches hautement structurées (ID, titre, priorités via Enums, date limite optionnelle).
+* **Lecture & Tri** : Récupération globale avec options de tri algorithmique par date limite ou par priorité.
+* **Mise à jour** : Passage textuel du statut de la tâche à l'état terminé (`isDone`).
+* **Suppression** : Retrait définitif d'un élément du fichier via son identifiant unique.
+* **Moteur de recherche & Filtrage** : Recherche flexible et indépendante par priorité ou par date limite (logique du "OU").
 
 ---
 
@@ -20,64 +21,80 @@ Avant de commencer, assurez-vous d'avoir installé le SDK Dart sur votre machine
 
 ## 📦 Installation et Configuration
 
-1. **Cloner ou ouvrir le projet** dans votre éditeur de code préféré (VS Code, Android Studio, etc.).
-2. Ouvrez votre terminal à la racine du projet et exécutez la commande suivante pour **télécharger les dépendances** (notamment le package de test) :
+1. **Cloner le projet** ou l'ouvrir dans votre éditeur (VS Code, Android Studio, etc.).
+2. Ouvrez votre terminal à la racine du projet et exécutez la commande suivante pour **télécharger les dépendances** :
    ```bash
    dart pub get
    ```
 
 ---
 
+## 📂 Structure du Projet
+
+Le projet applique un découpage strict et modulaire des responsabilités exigé par le validateur automatique :
+
+```text
+gestion_tache_dart/
+├── bin/
+│   └── main.dart              # Point d'entrée de l'application (Initialisation et run)
+├── data/
+│   └── tasks.json             # Fichier de persistance locale des données JSON
+├── lib/
+│   ├── cli/
+│   │   └── task_cli.dart      # Interface interactive en ligne de commande (Menus et saisies)
+│   ├── exceptions/
+│   │   └── task_exception.dart# Exceptions personnalisées (TaskNotFoundException, StorageException)
+│   ├── interfaces/
+│   │   └── json_serializable.dart # Contrat d'interface pour la sérialisation des modèles
+│   ├── models/
+│   │   ├── tache.dart         # Classe de base abstraite des tâches
+│   │   └── tache_urgente.dart # Sous-classe concrète appliquant le concept d'héritage
+│   ├── repositories/
+│   │   ├── repository.dart    # Interface générique Repository<T>
+│   │   └── tache_repository.dart # Implémentation concrète de la persistance des tâches
+│   ├── services/
+│   │   └── task_service.dart  # Couche métier intermédiaire (Logique de tri et d'orchestration)
+│   ├── storage/
+│   │   └── json_storage.dart  # Gestion brute des Entrées/Sorties sur le système de fichiers
+│   └── utils/
+│       └── priority.dart      # Énumération fortement typée des priorités (low, medium, high)
+├── test/
+│   └── task_management_test.dart # Suite de tests automatisés avec le package `test`
+├── pubspec.yaml               # Dépendances du projet (package test) et métadonnées
+└── README.md                  # Documentation de l'application
+```
+
+---
+
 ## 🖥️ Lancement de l'Application
 
-Pour exécuter le script principal (votre fichier contenant la fonction `main`), utilisez la commande `dart run` suivie du chemin vers votre fichier :
+Pour démarrer l'application interactive, ouvrez votre **terminal système** à la racine du projet et exécutez :
 
 ```bash
 dart run bin/main.dart
 ```
 
-💡 **Note** : Lors de l'exécution, un fichier `mes_taches.json` sera automatiquement créé à la racine du projet pour stocker vos données.
+⚠️ **Important (VS Code)** : N'utilisez pas la "Console de débogage" (Debug Console) pour interagir avec l'application, car elle bloque le flux de saisie clavier (`stdin`). Utilisez exclusivement l'onglet **Terminal** natif.
+
+💡 **Note** : Le dossier `data/` et son fichier `tasks.json` seront créés automatiquement dès le premier lancement si ces derniers sont manquants sur votre machine.
 
 ---
 
 ## 🧪 Exécution des Tests Unitaires
 
-Le projet intègre une suite de 5 tests automatisés pour valider le bon fonctionnement du système de stockage (création, lecture, modification et suppression).
+Le projet intègre une suite de tests robustes validant l'intégrité de la couche de service et du stockage, tout en vérifiant la bonne interception des comportements anormaux.
 
-Pour lancer l'ensemble des tests, exécutez la commande suivante dans votre terminal :
+Pour exécuter la suite de tests, lancez la commande suivante :
 
 ```bash
 dart test
 ```
 
-### Ce que font les tests :
-1. Vérifient que la lecture d'un fichier inexistant retourne bien une liste vide.
-2. Valident l'ajout et l'encodage correct d'une tâche en JSON.
-3. Vérifient que l'ajout successif de tâches ne corrompt pas la structure du fichier.
-4. Valident la modification textuelle du statut d'une tâche.
-5. Vérifient la suppression définitive d'un élément via son ID.
+### Ce que valident les tests :
+1. **Initialisation** : Vérifie que le gestionnaire renvoie une liste vide lorsque le stockage démarre sans historique.
+2. **Création** : Valide l'ajout d'une tâche, son typage et sa mise en mémoire.
+3. **Mise à jour** : Confirme la modification de l'état d'un élément précis pour le passer au statut terminé.
+4. **Suppression** : Valide le retrait complet d'une tâche via son identifiant unique.
+5. **Gestion des erreurs** : S'assure que le système lève correctement une exception personnalisée `TaskNotFoundException` lors d'une tentative de suppression ou de ciblage d'un identifiant inexistant.
 
-*Chaque test s'exécute sur un fichier temporaire isolé qui est automatiquement nettoyé après chaque passage.*
-
-## 📂 Structure du Projet
-
-Le projet respecte l'organisation standard d'une application Dart et se décompose comme suit :
-
-```text
-├── .dart_tool/             # Fichiers de configuration internes à Dart (générés automatiquement)
-├── bin/                    # Points d'entrée de l'application
-│   └── main.dart           # Fichier principal pour exécuter et tester le script
-├── lib/                    # Cœur du code métier (Logique et Modèles)
-│   ├── StackItem.dart      # Modèle de données de la tâche (Parsing JSON)
-│   ├── TaskStorage.dart    # Interface abstraite générique du stockage
-│   └── StackManage.dart    # Implémentation concrète de la gestion des fichiers
-├── test/                   # Tests automatisés
-│   └── stack_manage_test.dart # Suite des 5 tests unitaires pour StackManage
-├── pubspec.yaml            # Dépendances (package test) et métadonnées du projet
-└── README.md               # Documentation du projet
-```
-
-### Rôle des dossiers principaux :
-*   **`lib/`** : Contient le code réutilisable. C'est ici que se trouve toute votre logique métier. Si vous décidez plus tard de passer sur une application mobile **Flutter**, vous pourrez réutiliser ce dossier tel quel.
-*   **`bin/`** : Contient uniquement les scripts exécutables en ligne de commande.
-*   **`test/`** : Regroupe tous les fichiers de tests. Dart impose que les fichiers à l'intérieur se terminent par le suffixe `_test.dart` pour être détectés par la commande `dart test`.
+*Chaque scénario de test utilise un fichier d'isolation temporaire (`tasks_test.json`) automatiquement nettoyé à sa fermeture via le hook `tearDown`.*

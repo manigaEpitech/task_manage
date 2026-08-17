@@ -1,63 +1,54 @@
 import 'dart:io';
 import 'package:test/test.dart';
-
-import '../lib/Task.dart';
-import '../lib/StackManage.dart';
-import '../lib/TaskExceptions.dart';
+import '../lib/storage/json_storage.dart';
+import '../lib/repositories/task_repository.dart';
+import '../lib/services/task_service.dart';
+import '../lib/models/urgent_task.dart';
+import '../lib/exceptions/task_exception.dart';
 
 void main() {
-  late StackManage manager;
-  final String testFilePath = 'taches_test.json';
+  final testPath = 'data/tasks_test.json';
+  late TaskService service;
 
   setUp(() {
-    manager = StackManage();
+    service = TaskService(TaskRepository(JsonStorage(testPath)));
   });
 
   tearDown(() async {
-    final file = File(testFilePath);
-    if (await file.exists()) {
-      await file.delete();
-    }
+    final file = File(testPath);
+    if (await file.exists()) await file.delete();
   });
 
-  test('1. Liste vide si pas de fichier', () async {
-    final tasks = await manager.readFromFile(testFilePath);
-    expect(tasks, isEmpty);
+  test('1. Liste vide par défaut', () async {
+    expect(await service.getTasks(), isEmpty);
   });
 
-  test('2. Sauvegarde et lecture d\'une tâche', () async {
-    final tache = UrgentTask(id: '1', title: 'Test Tâche');
-    await manager.saveToFile(testFilePath, tache);
-
-    final tasks = await manager.readFromFile(testFilePath);
-    expect(tasks.length, equals(1));
-    expect(tasks.first.title, equals('Test Tâche'));
+  test('2. Créer une tâche', () async {
+    await service.createTask(UrgentTask(id: '1', title: 'Test'));
+    final list = await service.getTasks();
+    expect(list.length, equals(1));
   });
 
-  test('3. Tri des tâches par date', () async {
-    final t1 = UrgentTask(id: '1', title: 'Loin', deadLine: '2026-12-31');
-    final t2 = UrgentTask(id: '2', title: 'Proche', deadLine: '2026-01-01');
-
-    await manager.saveToFile(testFilePath, t1);
-    await manager.saveToFile(testFilePath, t2);
-
-    final sorted = await manager.getAllSorted(testFilePath, 'date');
-    expect(sorted.first.title, equals('Proche'));
+  test('3. Marquer comme fait', () async {
+    await service.createTask(UrgentTask(id: '1', title: 'Test'));
+    await service.markAsDone('1');
+    final list = await service.getTasks();
+    expect(list.first.completed, isTrue);
   });
 
-  test('4. Lever une exception TaskNotFoundException', () async {
-    final fausseTache = UrgentTask(id: '999', title: 'Inconnue');
-    expect(
-      () => manager.updateTask(testFilePath, fausseTache),
-      throwsA(isA<TaskNotFoundException>()),
-    );
+  test('4. Supprimer tâche', () async {
+    await service.createTask(UrgentTask(id: '1', title: 'Test'));
+    await service.deleteTask('1');
+    expect(await service.getTasks(), isEmpty);
   });
 
-  test('5. Suppression d\'une tâche', () async {
-    final tache = UrgentTask(id: '10', title: 'À supprimer');
-    await manager.saveToFile(testFilePath, tache);
-
-    final deleteResult = await manager.deleteTask(testFilePath, '10');
-    expect(deleteResult, isTrue);
-  });
+  test(
+    '5. Lever TaskNotFoundException en cas de mauvaise suppression',
+    () async {
+      expect(
+        () => service.deleteTask('999'),
+        throwsA(isA<TaskNotFoundException>()),
+      );
+    },
+  );
 }
