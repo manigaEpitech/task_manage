@@ -21,14 +21,16 @@ class NormalTask extends Task {
 
   factory NormalTask.fromJson(Map<String, dynamic> json) {
     return NormalTask(
-      id: json['id'],
-      title: json['title'],
+      id: json['id'] as String,
+      title: json['title'] as String,
       priority: Priority.values.firstWhere(
         (p) => p.toString().split('.').last == json['priority'],
         orElse: () => Priority.medium,
       ),
-      dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
-      completed: json['completed'] ?? false,
+      dueDate: json['dueDate'] != null
+          ? DateTime.parse(json['dueDate'] as String)
+          : null,
+      completed: json['completed'] as bool? ?? false,
     );
   }
 }

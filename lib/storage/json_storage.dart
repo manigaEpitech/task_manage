@@ -20,7 +20,7 @@ class JsonStorage {
       final content = await file.readAsString();
       if (content.trim().isEmpty) return [];
 
-      final List<dynamic> decoded = jsonDecode(content);
+      final List<dynamic> decoded = jsonDecode(content) as List<dynamic>;
       return decoded.map((item) => item as Map<String, dynamic>).toList();
     } catch (e) {
       throw StorageException("Erreur lors de la lecture du fichier JSON : $e");
