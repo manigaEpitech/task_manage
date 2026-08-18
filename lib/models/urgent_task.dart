@@ -11,11 +11,22 @@ class UrgentTask extends Task {
   });
 
   @override
+  UrgentTask copyWith({bool? completed}) {
+    return UrgentTask(
+      id: id,
+      title: title,
+      priority: priority,
+      dueDate: dueDate,
+      completed: completed ?? this.completed,
+    );
+  }
+
+  @override
   Map<String, dynamic> toJson() => {
     'id': id,
     'title': title,
     'type': 'urgent',
-    'priority': priority.toShortString(),
+    'priority': priority.name,
     'dueDate': dueDate?.toIso8601String(),
     'completed': completed,
   };
@@ -24,10 +35,7 @@ class UrgentTask extends Task {
     return UrgentTask(
       id: json['id'] as String,
       title: json['title'] as String,
-      priority: Priority.values.firstWhere(
-        (p) => p.toString().split('.').last == json['priority'],
-        orElse: () => Priority.high,
-      ),
+      priority: Priority.fromString(json['priority'] as String? ?? 'high'),
       dueDate: json['dueDate'] != null
           ? DateTime.parse(json['dueDate'] as String)
           : null,

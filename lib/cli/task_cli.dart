@@ -66,10 +66,8 @@ class TaskCli {
 
     stdout.write('Date limite (YYYY-MM-DD, optionnelle) : ');
 
-    // 1. On lit la console UNE SEULE FOIS et on nettoie les espaces
     final String rawInput = (stdin.readLineSync() ?? '').trim();
 
-    // 2. On utilise tryParse pour éviter tout crash si le format est incorrect
     final DateTime? dueDate = rawInput.isNotEmpty
         ? DateTime.tryParse(rawInput)
         : null;

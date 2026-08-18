@@ -1,9 +1,9 @@
-import '../repositories/repository.dart';
+import '../repositories/task_repository.dart';
 import '../exceptions/task_exception.dart';
 import '../models/task.dart';
 
 class TaskService {
-  final Repository<Task> repository;
+  final TaskRepository repository;
 
   TaskService(this.repository);
 
@@ -13,9 +13,7 @@ class TaskService {
 
   Future<List<Task>> getTasks({String? sortBy}) async {
     final tasks = await repository.getAll();
-    final tasksCopy = List<Task>.from(
-      tasks,
-    ); // Crée une copie de la liste pour éviter de modifier l'originale
+    final tasksCopy = List<Task>.from(tasks);
     if (sortBy == 'priority') {
       tasksCopy.sort((a, b) => b.priority.index.compareTo(a.priority.index));
     } else if (sortBy == 'date') {
@@ -34,8 +32,8 @@ class TaskService {
       final index = tasks.indexWhere((t) => t.id == id);
       if (index == -1) throw TaskNotFoundException("ID $id introuvable.");
       final task = tasks[index];
-      task.completed = true;
-      await repository.update(task);
+      final updatedTask = task.copyWith(completed: true);
+      await repository.update(updatedTask);
     } on TaskException {
       rethrow; // Propager l'exception pour qu'elle soit gérée ailleurs
     }

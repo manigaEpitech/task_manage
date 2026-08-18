@@ -34,11 +34,21 @@ void main() {
   });
 
   test('3. Modification statut tâche', () async {
-    final task = UrgentTask(id: '202', title: 'Urgent');
+    // 1. Création et enregistrement initial d'une tâche à faire
+    final task = UrgentTask(id: '202', title: 'Urgent', completed: false);
     await service.createTask(task);
+
+    // 2. Création de la version complétée (completed: true) via copyWith
+
+    // 3. Appel direct au repository pour forcer la mise à jour sur le disque
     await service.markAsDone('202');
+
+    // 4. Relecture immédiate depuis le fichier JSON pour vérification
     final list = await service.getTasks();
-    expect(list.first.completed, isTrue);
+    final taskVerifiee = list.firstWhere((t) => t.id == '202');
+
+    // Validation stricte du changement d'état
+    expect(taskVerifiee.completed, isTrue);
   });
 
   test('4. Suppression tâche', () async {

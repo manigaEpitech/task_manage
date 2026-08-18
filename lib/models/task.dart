@@ -20,6 +20,7 @@ abstract class Task implements JsonSerializable {
     this.completed = false,
   });
 
+  Task copyWith({bool? completed});
   void complete() {
     completed = true;
   }

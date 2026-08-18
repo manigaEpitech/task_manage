@@ -11,10 +11,10 @@ class TaskFactory {
     final priority = Priority.fromString(
       json['priority'] as String? ?? 'medium',
     );
-    final dueDate = json['deadLine'] == 'None'
-        ? null
-        : json['deadLine'] as DateTime?;
-    final completed = json['isDone'] as bool? ?? false;
+    final dueDate = json['dueDate'] != null
+        ? DateTime.parse(json['dueDate'] as String)
+        : null;
+    final completed = json['completed'] as bool? ?? false;
 
     if (type == 'urgent') {
       return UrgentTask(

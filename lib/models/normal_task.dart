@@ -11,11 +11,22 @@ class NormalTask extends Task {
   });
 
   @override
+  NormalTask copyWith({bool? completed}) {
+    return NormalTask(
+      id: id,
+      title: title,
+      priority: priority,
+      dueDate: dueDate,
+      completed: completed ?? this.completed,
+    );
+  }
+
+  @override
   Map<String, dynamic> toJson() => {
     'id': id,
     'title': title,
     'type': 'normal',
-    'priority': priority.toString().split('.').last,
+    'priority': priority.name,
     'dueDate': dueDate?.toIso8601String(),
     'completed': completed,
   };
@@ -24,10 +35,7 @@ class NormalTask extends Task {
     return NormalTask(
       id: json['id'] as String,
       title: json['title'] as String,
-      priority: Priority.values.firstWhere(
-        (p) => p.toString().split('.').last == json['priority'],
-        orElse: () => Priority.medium,
-      ),
+      priority: Priority.fromString(json['priority'] as String? ?? 'medium'),
       dueDate: json['dueDate'] != null
           ? DateTime.parse(json['dueDate'] as String)
           : null,

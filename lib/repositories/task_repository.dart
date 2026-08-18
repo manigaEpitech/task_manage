@@ -12,7 +12,6 @@ class TaskRepository implements Repository<Task> {
   @override
   Future<List<Task>> getAll() async {
     final rawData = await storage.read();
-
     return rawData.map<Task>((json) {
       return TaskFactory.fromJson(json);
     }).toList();
@@ -27,10 +26,11 @@ class TaskRepository implements Repository<Task> {
 
   @override
   Future<void> update(Task item) async {
-    final list = await getAll();
+    final list = await getAll(); // ✅ Désérialiser complètement
     final index = list.indexWhere((t) => t.id == item.id);
     if (index == -1) throw TaskNotFoundException("Tâche introuvable.");
-    list[index] = item;
+
+    list[index] = item; // ✅ Remplacer l'objet complet
     await storage.write(list.map((t) => t.toJson()).toList());
   }
 
