@@ -14,6 +14,7 @@ class UrgentTask extends Task {
   Map<String, dynamic> toJson() => {
     'id': id,
     'title': title,
+    'type': 'urgent',
     'priority': priority.toShortString(),
     'dueDate': dueDate?.toIso8601String(),
     'completed': completed,

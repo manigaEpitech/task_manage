@@ -154,7 +154,8 @@ L'application affiche ensuite un menu permettant de gérer les tâches :
 2. Lister les tâches
 3. Terminer une tâche
 4. Supprimer une tâche
-5. Quitter
+5. Rechercher / Filtrer une tâche
+6. Quitter
 ====================================
 Votre choix :
 ```
@@ -281,4 +282,4 @@ dart run bin/main.dart
 
 ## Auteur
 
-Zénas Alpha TOUMAINI (L'ambasssadeur)
+MANIGA TOKPA ABOU (L'ambasssadeur)

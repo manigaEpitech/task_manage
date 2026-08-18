@@ -14,6 +14,7 @@ class NormalTask extends Task {
   Map<String, dynamic> toJson() => {
     'id': id,
     'title': title,
+    'type': 'normal',
     'priority': priority.toString().split('.').last,
     'dueDate': dueDate?.toIso8601String(),
     'completed': completed,

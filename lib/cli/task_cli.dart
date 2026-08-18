@@ -65,10 +65,19 @@ class TaskCli {
     final priority = _parsePriority(priorityInput) ?? Priority.medium;
 
     stdout.write('Date limite (YYYY-MM-DD, optionnelle) : ');
-    final DateTime? dateInput = stdin.readLineSync()?.trim().isEmpty != true
-        ? DateTime.parse(stdin.readLineSync()?.trim() ?? '')
+
+    // 1. On lit la console UNE SEULE FOIS et on nettoie les espaces
+    final String rawInput = (stdin.readLineSync() ?? '').trim();
+
+    // 2. On utilise tryParse pour éviter tout crash si le format est incorrect
+    final DateTime? dueDate = rawInput.isNotEmpty
+        ? DateTime.tryParse(rawInput)
         : null;
-    final dueDate = dateInput;
+
+    // 3. En option : avertir l'utilisateur si sa saisie était incorrecte
+    if (rawInput.isNotEmpty && dueDate == null) {
+      print('⚠️ Format incorrect. La tâche sera créée sans date limite.');
+    }
 
     final id = DateTime.now().millisecondsSinceEpoch.toString();
 
