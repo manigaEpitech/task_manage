@@ -1,100 +1,284 @@
-# 📝 Gestionnaire de Tâches Dart (CLI Task Manager)
+# Gestionnaire de tâches (Projet Dart CLI)
 
-Une application console en Dart pur conçue selon une architecture découplée en couches (Clean Architecture / Repository Pattern). Elle permet de gérer un flux complet de tâches de façon persistante dans un stockage JSON local, intègre des exceptions personnalisées ainsi qu'une suite de tests automatisés.
+Application en ligne de commande développée en **Dart pur**, permettant de gérer des tâches depuis un terminal.
 
----
-
-## 🚀 Fonctionnalités
-* **Création** : Ajout de tâches hautement structurées (ID, titre, priorités via Enums, date limite optionnelle).
-* **Lecture & Tri** : Récupération globale avec options de tri algorithmique par date limite ou par priorité.
-* **Mise à jour** : Passage textuel du statut de la tâche à l'état terminé (`isDone`).
-* **Suppression** : Retrait définitif d'un élément du fichier via son identifiant unique.
-* **Moteur de recherche & Filtrage** : Recherche flexible et indépendante par priorité ou par date limite (logique du "OU").
+Le projet a été réalisé dans le but de mettre en pratique les principaux concepts du langage Dart : programmation orientée objet, héritage, classes abstraites, interfaces, génériques, exceptions, programmation asynchrone, persistance JSON et tests unitaires.
 
 ---
 
-## 🛠️ Prérequis
-Avant de commencer, assurez-vous d'avoir installé le SDK Dart sur votre machine.
-* [Télécharger et installer Dart](https://dart.dev)
+## Fonctionnalités
+
+L'application permet de :
+
+* Ajouter une tâche
+* Définir un titre
+* Définir une priorité : `low`, `medium` ou `high`
+* Ajouter une date limite optionnelle
+* Lister les tâches
+* Trier les tâches par priorité
+* Trier les tâches par date limite
+* Marquer une tâche comme terminée
+* Supprimer une tâche
+* Persister les données dans un fichier JSON local
+* Gérer les erreurs avec des exceptions personnalisées
 
 ---
 
-## 📦 Installation et Configuration
+## Technologies utilisées
 
-1. **Cloner le projet** ou l'ouvrir dans votre éditeur (VS Code, Android Studio, etc.).
-2. Ouvrez votre terminal à la racine du projet et exécutez la commande suivante pour **télécharger les dépendances** :
-   ```bash
-   dart pub get
-   ```
+* **Dart**
+* `dart:io` pour les interactions avec le terminal et les fichiers
+* `dart:convert` pour la sérialisation JSON
+* Package `test` pour les tests unitaires
+* Git / GitHub pour le versionnement et la livraison
 
 ---
 
-## 📂 Structure du Projet
+## Concepts Dart mis en pratique
 
-Le projet applique un découpage strict et modulaire des responsabilités exigé par le validateur automatique :
+Le projet utilise notamment :
+
+* Classes et objets
+* Classes abstraites
+* Héritage
+* Redéfinition de méthodes avec `@override`
+* Interfaces
+* Génériques
+* Exceptions personnalisées
+* Programmation asynchrone avec `Future`
+* Collections et opérations sur les listes
+* Sérialisation / désérialisation JSON
+* Tests unitaires
+
+---
+
+## Architecture du projet
 
 ```text
 gestion_tache_dart/
+│
 ├── bin/
-│   └── main.dart              # Point d'entrée de l'application (Initialisation et run)
-├── data/
-│   └── tasks.json             # Fichier de persistance locale des données JSON
+│   └── main.dart
+│
 ├── lib/
 │   ├── cli/
-│   │   └── task_cli.dart      # Interface interactive en ligne de commande (Menus et saisies)
+│   │   └── task_cli.dart
+│   │
 │   ├── exceptions/
-│   │   └── task_exception.dart# Exceptions personnalisées (TaskNotFoundException, StorageException)
+│   │   └── task_exception.dart
+│   │
 │   ├── interfaces/
-│   │   └── json_serializable.dart # Contrat d'interface pour la sérialisation des modèles
+│   │   └── json_serializable.dart
+│   │
 │   ├── models/
-│   │   ├── tache.dart         # Classe de base abstraite des tâches
-│   │   └── tache_urgente.dart # Sous-classe concrète appliquant le concept d'héritage
+│   │   ├── tache.dart
+│   │   └── tache_urgente.dart
+│   │
 │   ├── repositories/
-│   │   ├── repository.dart    # Interface générique Repository<T>
-│   │   └── tache_repository.dart # Implémentation concrète de la persistance des tâches
+│   │   ├── repository.dart
+│   │   └── tache_repository.dart
+│   │
 │   ├── services/
-│   │   └── task_service.dart  # Couche métier intermédiaire (Logique de tri et d'orchestration)
+│   │   └── task_service.dart
+│   │
 │   ├── storage/
-│   │   └── json_storage.dart  # Gestion brute des Entrées/Sorties sur le système de fichiers
+│   │   └── json_storage.dart
+│   │
 │   └── utils/
-│       └── priority.dart      # Énumération fortement typée des priorités (low, medium, high)
+│       └── priority.dart
+│
+├── data/
+│   └── tasks.json
+│
 ├── test/
-│   └── task_management_test.dart # Suite de tests automatisés avec le package `test`
-├── pubspec.yaml               # Dépendances du projet (package test) et métadonnées
-└── README.md                  # Documentation de l'application
+│   └── ...
+│
+├── .gitignore
+├── analysis_options.yaml
+├── CHANGELOG.md
+├── pubspec.yaml
+└── README.md
 ```
 
 ---
 
-## 🖥️ Lancement de l'Application
+## Prérequis
 
-Pour démarrer l'application interactive, ouvrez votre **terminal système** à la racine du projet et exécutez :
+Pour exécuter le projet, il faut disposer du SDK Dart.
+
+Vérifier l'installation :
+
+```bash
+dart --version
+```
+
+---
+
+## Installation
+
+Cloner le dépôt :
+
+```bash
+git clone https://github.com/mtoumamt63-hue/Gestion_Tache_Dart.git
+```
+
+Se placer dans le projet :
+
+```bash
+cd Gestion_Tache_Dart
+```
+
+Installer les dépendances :
+
+```bash
+dart pub get
+```
+
+---
+
+## Lancer l'application
+
+Exécuter :
 
 ```bash
 dart run bin/main.dart
 ```
 
-⚠️ **Important (VS Code)** : N'utilisez pas la "Console de débogage" (Debug Console) pour interagir avec l'application, car elle bloque le flux de saisie clavier (`stdin`). Utilisez exclusivement l'onglet **Terminal** natif.
+L'application affiche ensuite un menu permettant de gérer les tâches :
 
-💡 **Note** : Le dossier `data/` et son fichier `tasks.json` seront créés automatiquement dès le premier lancement si ces derniers sont manquants sur votre machine.
+```text
+====================================
+       GESTIONNAIRE DE TÂCHES
+====================================
+1. Ajouter une tâche
+2. Lister les tâches
+3. Terminer une tâche
+4. Supprimer une tâche
+5. Quitter
+====================================
+Votre choix :
+```
 
 ---
 
-## 🧪 Exécution des Tests Unitaires
+## Exécuter les tests
 
-Le projet intègre une suite de tests robustes validant l'intégrité de la couche de service et du stockage, tout en vérifiant la bonne interception des comportements anormaux.
-
-Pour exécuter la suite de tests, lancez la commande suivante :
+Lancer l'ensemble des tests :
 
 ```bash
 dart test
 ```
 
-### Ce que valident les tests :
-1. **Initialisation** : Vérifie que le gestionnaire renvoie une liste vide lorsque le stockage démarre sans historique.
-2. **Création** : Valide l'ajout d'une tâche, son typage et sa mise en mémoire.
-3. **Mise à jour** : Confirme la modification de l'état d'un élément précis pour le passer au statut terminé.
-4. **Suppression** : Valide le retrait complet d'une tâche via son identifiant unique.
-5. **Gestion des erreurs** : S'assure que le système lève correctement une exception personnalisée `TaskNotFoundException` lors d'une tentative de suppression ou de ciblage d'un identifiant inexistant.
+Le projet contient plusieurs tests couvrant notamment :
 
-*Chaque scénario de test utilise un fichier d'isolation temporaire (`tasks_test.json`) automatiquement nettoyé à sa fermeture via le hook `tearDown`.*
+* l'ajout d'une tâche ;
+* la validation des données ;
+* l'héritage ;
+* la complétion ;
+* la suppression ;
+* le tri par priorité ;
+* le tri par date.
+
+---
+
+## Analyser le code
+
+Pour vérifier la qualité et détecter les problèmes statiques :
+
+```bash
+dart analyze
+```
+
+Le projet doit retourner :
+
+```text
+No issues found!
+```
+
+---
+
+## Persistance des données
+
+Les tâches sont sauvegardées localement dans :
+
+```text
+data/tasks.json
+```
+
+Le stockage utilise le format JSON.
+
+Exemple :
+
+```json
+[
+  {
+    "id": "1",
+    "title": "Apprendre Dart",
+    "priority": "high",
+    "completed": false,
+    "dueDate": "2026-08-10"
+  }
+]
+```
+
+Les données restent disponibles après la fermeture puis le redémarrage de l'application.
+
+---
+
+## Architecture logicielle
+
+Le projet suit une séparation des responsabilités :
+
+### Models
+
+Les modèles représentent les données métier.
+
+```text
+Task
+UrgentTask
+```
+
+### Repository
+
+Le repository fournit une abstraction pour manipuler les données.
+
+```text
+Repository<T>
+TaskRepository
+```
+
+L'utilisation de `T` permet d'avoir un repository générique.
+
+### Service
+
+`TaskService` contient la logique métier de l'application.
+
+### Storage
+
+`JsonStorage` s'occupe de la lecture et de l'écriture des données dans le fichier JSON.
+
+### CLI
+
+`TaskCli` gère les interactions avec l'utilisateur depuis le terminal.
+
+### Exceptions
+
+Les erreurs métier sont représentées par des exceptions personnalisées.
+
+---
+
+## Validation du projet
+
+Avant livraison, les commandes suivantes doivent fonctionner :
+
+```bash
+dart analyze
+dart test
+dart run bin/main.dart
+```
+
+---
+
+## Auteur
+
+Zénas Alpha TOUMAINI (L'ambasssadeur)

@@ -1,5 +1,5 @@
-import 'Task.dart';
 import '../utils/priority.dart';
+import 'task.dart';
 
 class NormalTask extends Task {
   NormalTask({

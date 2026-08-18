@@ -10,7 +10,7 @@ class TaskException implements Exception {
 }
 
 class TaskNotFoundException extends TaskException {
-  TaskNotFoundException(String message) : super(message);
+  TaskNotFoundException(super.message);
 
   @override
   String toString() {
@@ -19,7 +19,7 @@ class TaskNotFoundException extends TaskException {
 }
 
 class StorageException extends TaskException {
-  StorageException(String message) : super(message);
+  StorageException(super.message);
 
   @override
   String toString() {
