@@ -4,13 +4,13 @@ import '../utils/priority.dart';
 abstract class Task implements JsonSerializable {
   final String id;
 
-  String title;
+  final String title;
 
-  Priority priority;
+  final Priority priority;
 
-  DateTime? dueDate;
+  final DateTime? dueDate;
 
-  bool completed;
+  final bool completed;
 
   Task({
     required this.id,
@@ -21,7 +21,8 @@ abstract class Task implements JsonSerializable {
   });
 
   Task copyWith({bool? completed});
-  void complete() {
-    completed = true;
+  String get type;
+  bool validate() {
+    return id.isNotEmpty && title.isNotEmpty;
   }
 }

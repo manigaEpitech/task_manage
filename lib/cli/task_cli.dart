@@ -55,48 +55,64 @@ class TaskCli {
     stdout.write('Votre choix : ');
   }
 
+  // Dans la méthode _addTask:
   Future<void> _addTask() async {
-    print('\n--- Ajouter une tâche ---');
-    stdout.write('Titre : ');
-    final title = stdin.readLineSync() ?? '';
-
-    stdout.write('Priorité (low/medium/high) : ');
-    final priorityInput = stdin.readLineSync() ?? '';
-    final priority = _parsePriority(priorityInput) ?? Priority.medium;
-
-    stdout.write('Date limite (YYYY-MM-DD, optionnelle) : ');
-
-    final String rawInput = (stdin.readLineSync() ?? '').trim();
-
-    final DateTime? dueDate = rawInput.isNotEmpty
-        ? DateTime.tryParse(rawInput)
-        : null;
-
-    // 3. En option : avertir l'utilisateur si sa saisie était incorrecte
-    if (rawInput.isNotEmpty && dueDate == null) {
-      print('⚠️ Format incorrect. La tâche sera créée sans date limite.');
-    }
-
-    final id = DateTime.now().millisecondsSinceEpoch.toString();
-
-    // Utilisation des classes concrètes d'héritage selon la priorité
-    Task newTask;
-    if (priority == Priority.high) {
-      newTask = UrgentTask(id: id, title: title, dueDate: dueDate);
-    } else {
-      newTask = NormalTask(
-        id: id,
-        title: title,
-        priority: priority,
-        dueDate: dueDate,
-      );
-    }
-
     try {
-      await service.createTask(newTask);
-      print('\nTâche ajoutée avec succès ! ID: $id');
-    } on TaskException catch (e) {
-      print('\nErreur stockage : $e');
+      stdout.write('Titre: ');
+      final title = stdin.readLineSync() ?? '';
+      if (title.isEmpty) {
+        stdout.writeln('❌ Le titre ne peut pas être vide!');
+        return;
+      }
+
+      stdout.write('Type (normal/urgent): ');
+      final typeInput = stdin.readLineSync()?.toLowerCase() ?? 'normal';
+      if (!['normal', 'urgent'].contains(typeInput)) {
+        stdout.writeln('❌ Type invalide! Utilisez "normal" ou "urgent".');
+        return;
+      }
+
+      stdout.write('Priorité (low/medium/high) [medium]: ');
+      final priorityInput = stdin.readLineSync()?.toLowerCase() ?? 'medium';
+      Priority priority;
+      try {
+        priority = Priority.fromString(priorityInput);
+      } catch (e) {
+        stdout.writeln('❌ Priorité invalide! Utilisez low, medium ou high.');
+        return;
+      }
+
+      stdout.write('Date (yyyy-MM-dd) [optionnel]: ');
+      DateTime? dueDate;
+      final dateInput = stdin.readLineSync();
+      if (dateInput != null && dateInput.isNotEmpty) {
+        try {
+          dueDate = DateTime.parse(dateInput);
+        } catch (e) {
+          stdout.writeln('❌ Format de date invalide! Utilisez yyyy-MM-dd.');
+          return;
+        }
+      }
+
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final task = typeInput == 'urgent'
+          ? UrgentTask(
+              id: id,
+              title: title,
+              priority: priority,
+              dueDate: dueDate,
+            )
+          : NormalTask(
+              id: id,
+              title: title,
+              priority: priority,
+              dueDate: dueDate,
+            );
+
+      await service.createTask(task);
+      stdout.writeln('✅ Tâche créée avec succès!');
+    } catch (e) {
+      stdout.writeln('❌ Erreur lors de la création: $e');
     }
   }
 

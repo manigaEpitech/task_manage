@@ -31,6 +31,9 @@ class NormalTask extends Task {
     'completed': completed,
   };
 
+  @override
+  String get type => 'normal';
+
   factory NormalTask.fromJson(Map<String, dynamic> json) {
     return NormalTask(
       id: json['id'] as String,

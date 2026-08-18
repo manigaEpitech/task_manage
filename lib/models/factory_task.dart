@@ -6,16 +6,22 @@ import '../utils/priority.dart';
 class TaskFactory {
   static Task fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String? ?? 'normal';
-    final id = json['id'] as String;
-    final title = json['title'] as String;
-    final priority = Priority.fromString(
-      json['priority'] as String? ?? 'medium',
-    );
-    final dueDate = json['dueDate'] != null
-        ? DateTime.parse(json['dueDate'] as String)
-        : null;
-    final completed = json['completed'] as bool? ?? false;
 
+    if (type == 'urgent') {
+      return UrgentTask.fromJson(json);
+    }
+    return NormalTask.fromJson(json);
+  }
+
+  /// Crée une tâche du type approprié
+  static Task create({
+    required String id,
+    required String title,
+    required String type,
+    Priority priority = Priority.medium,
+    DateTime? dueDate,
+    bool completed = false,
+  }) {
     if (type == 'urgent') {
       return UrgentTask(
         id: id,

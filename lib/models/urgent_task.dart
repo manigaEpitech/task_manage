@@ -11,6 +11,9 @@ class UrgentTask extends Task {
   });
 
   @override
+  String get type => 'urgent';
+
+  @override
   UrgentTask copyWith({bool? completed}) {
     return UrgentTask(
       id: id,
